@@ -50,11 +50,13 @@ def test_retrieval_and_generation_child_observations(monkeypatch) -> None:
     assert update["cost_details"]["total"] > 0
 
 
-def test_generation_input_has_no_raw_pii(monkeypatch) -> None:
+def test_observations_do_not_capture_raw_input_or_output(monkeypatch) -> None:
     rec = _run(monkeypatch, "email me at secret.person@example.com")
-    gen = next(c for c in rec.calls if c["name"] == "llm-generate")
-    assert "secret.person@example.com" not in gen["kwargs"]["input"]
-    assert "REDACTED_EMAIL" in gen["kwargs"]["input"]
+    for call in rec.calls:
+        assert "input" not in call["kwargs"]
+        for update in call["updates"]:
+            assert "input" not in update and "output" not in update
+    assert "secret.person@example.com" not in repr(rec.calls)
 
 
 def test_retrieval_failure_is_marked_error(monkeypatch) -> None:

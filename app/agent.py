@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from . import metrics
 from .mock_llm import FakeLLM
 from .mock_rag import retrieve
-from .pii import hash_user_id, scrub_text, summarize_text
+from .pii import hash_user_id, summarize_text
 from .prompt_management import resolve_prompt
 from .tracing import (
     get_langfuse_client,
@@ -78,13 +78,13 @@ class LabAgent:
                 version=prompt.version,
             )
             # Child observation #2: LLM call. Gắn prompt managed để Langfuse link
-            # generation với đúng prompt name/version. Input chỉ là bản đã scrub.
+            # generation với đúng prompt name/version. KHÔNG gửi input/output thô
+            # (prompt chứa câu hỏi người dùng); chỉ gửi model, usage, cost, metadata.
             with propagate_attributes(prompt=prompt.managed_prompt):
                 with start_observation(
                     "llm-generate",
                     as_type="generation",
                     model=self.model,
-                    input=scrub_text(prompt.text)[:500],
                     prompt=prompt.managed_prompt,
                     metadata={
                         "prompt_name": prompt.name,
@@ -97,7 +97,6 @@ class LabAgent:
                         response.usage.input_tokens, response.usage.output_tokens
                     )
                     generation.update(
-                        output=summarize_text(response.text, 200),
                         usage_details={
                             "input": response.usage.input_tokens,
                             "output": response.usage.output_tokens,
@@ -108,7 +107,11 @@ class LabAgent:
                             "output": output_cost,
                             "total": round(input_cost + output_cost, 6),
                         },
-                        metadata={"ttft_ms": response.ttft_ms},
+                        metadata={
+                            "ttft_ms": response.ttft_ms,
+                            "prompt_chars": len(prompt.text),
+                            "answer_chars": len(response.text),
+                        },
                     )
             quality_score = self._heuristic_quality(message, response.text, docs)
             latency_ms = int((time.perf_counter() - started) * 1000)
@@ -138,14 +141,13 @@ class LabAgent:
         with start_observation(
             "retrieval",
             as_type="retriever",
-            input={"query_preview": summarize_text(message)},
         ) as observation:
             try:
                 docs = retrieve(message)
             except Exception as exc:
                 observation.update(level="ERROR", status_message=f"{type(exc).__name__}: {exc}")
                 raise
-            observation.update(output={"doc_count": len(docs)})
+            observation.update(metadata={"doc_count": len(docs)})
             return docs
 
     def _cost_parts(self, tokens_in: int, tokens_out: int) -> tuple[float, float]:

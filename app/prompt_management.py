@@ -19,6 +19,15 @@ class ResolvedPrompt:
     fetch_error: str | None = None
 
 
+def _fetch_timeout() -> int:
+    """Timeout lấy prompt từ Langfuse (giây). Mặc định 2; mạng chậm thì đặt
+    LANGFUSE_PROMPT_FETCH_TIMEOUT=10 trong .env thay vì sửa code."""
+    try:
+        return max(1, int(os.getenv("LANGFUSE_PROMPT_FETCH_TIMEOUT", "2")))
+    except ValueError:
+        return 2
+
+
 def _compile_local_prompt(*, feature: str, docs: list[str], message: str) -> str:
     return (
         DEFAULT_PROMPT_TEMPLATE.replace("{{feature}}", feature)
@@ -46,7 +55,7 @@ def resolve_prompt(
                 type="text",
                 fallback=DEFAULT_PROMPT_TEMPLATE,
                 cache_ttl_seconds=60,
-                fetch_timeout_seconds=2,
+                fetch_timeout_seconds=_fetch_timeout(),
                 max_retries=0,
             )
             if getattr(managed_prompt, "is_fallback", False):
