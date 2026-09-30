@@ -7,8 +7,8 @@
 - **Họ và tên:** Phạm Văn Hoàng Anh Tú
 - **MSSV:** 2A202602507
 - **Lớp:** K4-L3B
-- **Repository URL:** https://github.com/tubepvhat1604-bot/K4-L3-DAY13-PhamVanHoangAnhTu-2A202602507-Monitoring-LLMOps <!-- KIỂM TRA lại URL -->
-- **Commit SHA cuối:** <!-- ĐIỀN: git log -1 --format=%H -->
+- **Repository URL:** https://github.com/tubepvhat1604-bot/K4-L3-DAY13-PhamVanHoangAnhTu-2A202602507-Monitoring-LLMOps
+- **Commit SHA cuối:** `b6e17b7224a253d88cade7d03658572766f8dc8f`
 - **Challenge ID:** `day13-k4-l3b-monitoring-llmops-v1` (incident `rag_slow`, affected feature `monitoring`, seed 1312, ngưỡng 2000 ms)
 - **Tên project Langfuse cá nhân:** `day13-k4-l3b-2A202602507`
 
