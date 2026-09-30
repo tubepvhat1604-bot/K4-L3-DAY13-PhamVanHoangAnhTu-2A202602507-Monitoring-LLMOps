@@ -3,11 +3,18 @@ primary_slo:
   name: fast_successful_requests
   window: 28d
   sli:
-    good_event: 'event == "response_sent" and latency_ms <= 3000'
+    # Ngưỡng 2000ms (chặt hơn mốc 3000ms của panel dashboard): baseline P95 ~150ms,
+    # nên 2000ms vẫn còn dư địa >10x nhưng bắt được sự cố retrieval chậm (~2.5s + 0.15s).
+    good_event: 'event == "response_sent" and latency_ms <= 2000'
     total_event: 'event == "request_received"'
   target_percent: 99.5
   error_budget_percent: 0.5
-  note: Học viên phải giải thích hoặc điều chỉnh ngưỡng bằng baseline của mình. Ví dụ nếu có 10,000 request trong cửa sổ 28 ngày, error budget 0.5% nghĩa là tối đa 50 request được phép không đạt SLO.
+  note: >
+    Baseline đo được trên workload mẫu: P95 latency ~155ms, TTFT ~50ms, 0 lỗi, quality ~0.8.
+    Error budget = 100% - 99.5% = 0.5%. Với 10,000 request trong 28 ngày, tối đa 50 request
+    được phép lỗi hoặc chậm hơn 2000ms. Nếu đốt hết 50 request đó thì đóng băng thay đổi
+    prompt/cấu hình (không promote label production) cho tới khi budget hồi phục.
+    Cảnh báo tốc độ đốt budget: burn rate > 14x trong 1h thì page, > 2x trong 6h thì ticket.
 guardrails:
   error_rate_pct_max: 2
   daily_cost_usd_max: 2.5

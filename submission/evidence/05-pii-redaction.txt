@@ -1,0 +1,7 @@
+# 05 - PII redaction
+INPUT : Email a.b@x.com, sdt 090 123 4567, CCCD 012345678901, the 4111 1111 1111 1111
+LOG   :
+Email [REDACTED_EMAIL], sdt [REDACTED_PHONE_VN], CCCD [REDACTED_CCCD], the [REDA...
+
+$ grep -cE "a.b@x.com|090 123 4567|012345678901|4111 1111" data/logs.jsonl
+0
